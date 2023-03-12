@@ -9,7 +9,7 @@ import mediapipe as mp
 import time
 import cvzone
 import math
-import bubble
+from bubble import Bubble
 
 
 mp_hands = mp.solutions.hands
@@ -29,15 +29,18 @@ frames = 0
 imageFront = cv2.imread("Assets/bubble.jpeg", cv2.IMREAD_UNCHANGED)
 
 
-# this is bubble1, change all of these attributes to an object
-x = 200
-y = 200
-bubble1X = 0
-bubble1Y = 0
-bubble1 = True
-distanceBubble1 = 100
+# x = 200
+# y = 200
+# bubble1X = 0
+# bubble1Y = 0
+# bubble1 = True
+# distanceBubble1 = 100
 
-
+bubble1 = Bubble(200, 200) 
+bubble2 = Bubble(500, 100)
+bubble3 = Bubble(700, 500)
+bubble4 = Bubble(1000, 500)
+bubbles = [bubble1, bubble2, bubble3, bubble4]
 
 # sets the pixels of the camera
 cap = cv2.VideoCapture(0)
@@ -81,7 +84,6 @@ with mp_hands.Hands(
         # Every 3 frames, find hands on image
         if frames % 3 == 0:
             results = hands.process(image)
-            # print(results.multi_hand_landmarks)
         
        
         # Example of getting index finger tip landmark coordinates.
@@ -92,36 +94,35 @@ with mp_hands.Hands(
             x_coord_of_index_finger_tip = (index_finger_tip.x * 1280)
             y_coord_of_index_finger_tip = (index_finger_tip.y * 720)
 
-            # Finds distance from pointer finger to the center of bubble1
-            distanceBubble1 = math.sqrt(pow(bubbleX - x_coord_of_index_finger_tip, 2) + pow(bubbleY - y_coord_of_index_finger_tip, 2))
-            # if finger is in range of the picture (50x50 image)
-            if distanceBubble1 <= 65:
-                bubble1 = False
-            print("The distance from the bubble and my finger is " + str(distanceBubble1))
+            for i in range(len(bubbles)):
+                bubbles[i].calculateDistance(x_coord_of_index_finger_tip, y_coord_of_index_finger_tip,imageFront.shape[0],imageFront.shape[1])
+                bubbles[i].popBubble()
         except:
-            print("Finger not found")
-       
+            pass
+            
         # Draw the hand annotations on the image.
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    image,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style())
         
         
+        # if results.multi_hand_landmarks:
+        #     for hand_landmarks in results.multi_hand_landmarks:
+        #         mp_drawing.draw_landmarks(
+        #             image,
+        #             hand_landmarks,
+        #             mp_hands.HAND_CONNECTIONS,
+        #             mp_drawing_styles.get_default_hand_landmarks_style(),
+        #             mp_drawing_styles.get_default_hand_connections_style())
         
-        # if bubble not "popped"
-        if bubble1:
-            image = cvzone.overlayPNG(image, imageFront, [x, y])
 
-        # Find the center of the bubble
-        bubbleX = x + (imageFront.shape[0]) / 2
-        bubbleY = y + (imageFront.shape[1]) / 2
+
+
+
+        # if bubble not "popped"
+        for i in range(len(bubbles)):
+            if not bubbles[i].isPopped:
+                image = cvzone.overlayPNG(image, imageFront, [bubbles[i].x, bubbles[i].y])
+
 
         
         
