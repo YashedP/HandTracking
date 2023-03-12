@@ -1,6 +1,8 @@
 # idea, change to gpu usage
 # animations
 # add a bubble object class
+# add a course of the bubble to go, directions
+# add multiple bubbles
 
 import cv2
 import mediapipe as mp
@@ -27,7 +29,7 @@ frames = 0
 imageFront = cv2.imread("Assets/bubble.jpeg", cv2.IMREAD_UNCHANGED)
 
 
-
+# this is bubble1, change all of these attributes to an object
 x = 200
 y = 200
 bubble1X = 0
@@ -37,7 +39,7 @@ distanceBubble1 = 100
 
 
 
-
+# sets the pixels of the camera
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -60,11 +62,11 @@ with mp_hands.Hands(
         
         
         
-        
+        # Finds the FPS
         cTime = time.time()
         fps = 1/(cTime-pTime)
         pTime = cTime
-        
+        # Shows FPS on screen
         cv2.putText(image, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
 
 
@@ -76,7 +78,7 @@ with mp_hands.Hands(
         
 
         
-
+        # Every 3 frames, find hands on image
         if frames % 3 == 0:
             results = hands.process(image)
             # print(results.multi_hand_landmarks)
@@ -90,8 +92,9 @@ with mp_hands.Hands(
             x_coord_of_index_finger_tip = (index_finger_tip.x * 1280)
             y_coord_of_index_finger_tip = (index_finger_tip.y * 720)
 
-            # print("Index finger tip landmark coordinates: (" + str(x_coord_of_index_finger_tip) + "," + str(y_coord_of_index_finger_tip) + ")")
+            # Finds distance from pointer finger to the center of bubble1
             distanceBubble1 = math.sqrt(pow(bubbleX - x_coord_of_index_finger_tip, 2) + pow(bubbleY - y_coord_of_index_finger_tip, 2))
+            # if finger is in range of the picture (50x50 image)
             if distanceBubble1 <= 65:
                 bubble1 = False
             print("The distance from the bubble and my finger is " + str(distanceBubble1))
@@ -112,10 +115,11 @@ with mp_hands.Hands(
         
         
         
-        
+        # if bubble not "popped"
         if bubble1:
             image = cvzone.overlayPNG(image, imageFront, [x, y])
 
+        # Find the center of the bubble
         bubbleX = x + (imageFront.shape[0]) / 2
         bubbleY = y + (imageFront.shape[1]) / 2
 
