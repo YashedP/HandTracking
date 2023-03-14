@@ -4,11 +4,10 @@
 # check bubble x and y less than 150 if they are, check if bubble is less than 100 distance from the center of each bubble and in the case it is, I make path for bubble to go left and bubble to go to right
 # take the first 5 frames and average for fps to get the length of the bezier curve indexes and how long I want the indexes to show up
 # randomize the size of the 2d array for the bezier curve to change the speed of the bubble itself, the index size for example for 20 fps - 100 index, randomize from 80 to 120, 30 fps - 150 index, randomize from 110 to 190
+
 import cv2
 import mediapipe as mp
 import time
-import random
-import numpy as np
 
 from bubble import Bubble
 
@@ -39,8 +38,7 @@ pTime = 0
 cTime = 0
 frames = 0
 
-coordinateList = []
-
+# bubbles = [Bubble(imageFront.shape)]
 bubbles = [Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
@@ -122,30 +120,19 @@ with mp_hands.Hands(
                 mp_drawing_styles.get_default_hand_connections_style())
         
         for i in range(len(bubbles)):
+            if bubbles[i].y == 620:
+                bubbles[i].resetPath()
+                bubbles[i].isPopped = False
             bubbles[i].index += 1
-            bubbles[i].x = bubbles[i].coordinates[bubbles[i].index][1]
-            if bubbles[i].y > monitorYPixels - bubbles[i].yPixels:
-                bubbles[i].changePath()
-                bubbles[i].isPopped = False
-
-        
-        
-        for i in range(len(bubbles)):
-            max = 8
-            if bubbles[i].y > monitorYPixels - bubbles[i].yPixels - max:
-                max = monitorYPixels - bubbles[i].yPixels - max
-            bubbles[i].y += random.randint(1, max)
-            print(bubbles[0].y)
-            if bubbles[i].y > monitorYPixels - bubbles[i].yPixels:
-                bubbles[i].y = 0
-                bubbles[i].isPopped = False
+            bubbles[i].x = int(bubbles[i].coordinates[bubbles[i].index][0])
+            bubbles[i].y = int(bubbles[i].coordinates[bubbles[i].index][1])
 
         # Overlays every bubble image onto the screen
         image = imageOverlay(bubbles, image)
     
         
         
-        cv2.imshow("MediaPipe Hands", image)
+        cv2.imshow("Bubbles", image)
         # Flip the image horizontally for a selfie-view display.
         # cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
         frames += 1

@@ -33,20 +33,20 @@ def generateBezier(nodes, degree):
     points = []
     # xList = []
     # yList = []
-    for i in range(0, 100, 1):
-        i = i/100
+    for i in range(0, 1005, 5):
+        i = i/1000
 
         points.append(curve.evaluate(i * 1.0))
         # xList.append(curve.evaluate(i * 1.0)[0])
         # yList.append(curve.evaluate(i * 1.0)[1])
 
     return points
-    # plotBezier(xList, yList)
+    # plotBezier(xList, yList, points)
 
-def plotBezier(xList, yList):
+def plotBezier(xList, yList, points):
+    # for i in range(len(points)):
+    #     print(f"({int(points[i][0])}, {int(points[i][1])})")
     plt.plot(xList, yList)
     plt.ylabel('some numbers')
     plt.axis([0, 1280, 0, 620])
     plt.show()
-
-print(generateRandomizeBezier())

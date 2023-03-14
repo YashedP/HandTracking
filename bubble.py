@@ -1,7 +1,6 @@
 import math
 import BezierCurves
 
-
 class Bubble:
     # static variables
     monitorXPixels = 0
@@ -11,8 +10,8 @@ class Bubble:
     def __init__(self, imageShape, isPopped=False, distanceFromFinger=100, index=0):
         self.coordinates = BezierCurves.generateRandomizeBezier()
         self.index = index
-        self.x = self.coordinates[self.index[0]]
-        self.y = self.coordinates[self.index[1]]
+        self.x = int(self.coordinates[self.index][0])
+        self.y = int(self.coordinates[self.index][1])
         self.xPixels = imageShape[1]
         self.yPixels = imageShape[0]
         self.isPopped = isPopped
@@ -38,5 +37,8 @@ class Bubble:
         else:
             return "right"
         
-    def changePath():
-        pass
+    def resetPath(self):
+        self.coordinates = BezierCurves.generateRandomizeBezier()
+        self.index = 0
+        self.x = int(self.coordinates[self.index][0])
+        self.y = int(self.coordinates[self.index][1])
