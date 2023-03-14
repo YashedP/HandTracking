@@ -1,15 +1,16 @@
 # animations
-# bezier's curve
-# bubbles come in from the top and trickle down from the top of the screen going down.
 #! Meaning, I must splice up the images by 100 pictures, ranging from the rows being shown and disappearing
 # Have a frame bigger than what we show to encapture the hands in case we wanted to pop the bubble but it was off screen so it wouldn't be able to find the bubble if half of our hand was off screen
-
+# check bubble x and y less than 150 if they are, check if bubble is less than 100 distance from the center of each bubble and in the case it is, I make path for bubble to go left and bubble to go to right
+# take the first 5 frames and average for fps to get the length of the bezier curve indexes and how long I want the indexes to show up
+# randomize the size of the 2d array for the bezier curve to change the speed of the bubble itself, the index size for example for 20 fps - 100 index, randomize from 80 to 120, 30 fps - 150 index, randomize from 110 to 190
 import cv2
 import mediapipe as mp
 import time
 import random
-from bubble import Bubble
 import numpy as np
+
+from bubble import Bubble
 
 def imageOverlay(bubbles, image):
     for i in range(len(bubbles)):
@@ -25,7 +26,7 @@ monitorXPixels = 1280 # 1280, or 1980
 monitorYPixels = 720 # 720 or 1080
 
 # Change the path to the image if need be
-imageFront = cv2.imread("Assets/original.png")
+imageFront = cv2.imread("Assets/bubble.png")
 imageFront = cv2.resize(imageFront, (100, 100))
 
 # ------------------------------------------------
@@ -38,16 +39,18 @@ pTime = 0
 cTime = 0
 frames = 0
 
-bubbles = [Bubble(100, 100, imageFront.shape),   \
-           Bubble(200, 200, imageFront.shape),   \
-           Bubble(600, 300, imageFront.shape),   \
-           Bubble(800, 400, imageFront.shape),   \
-           Bubble(630, 80, imageFront.shape),    \
-           Bubble(700, 120, imageFront.shape),   \
-           Bubble(900, 70, imageFront.shape),    \
-           Bubble(1000, 369, imageFront.shape),  \
-           Bubble(200, 400, imageFront.shape),   \
-           Bubble(500, 600, imageFront.shape)]
+coordinateList = []
+
+bubbles = [Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape)]
 bubbles[0].setMonitorDimension(monitorXPixels, monitorYPixels)
 
 # Sets the pixels of the input picture
@@ -66,8 +69,15 @@ with mp_hands.Hands(
         if not success:
             print("Ignoring empty camera frame.")
             break
-        #! Uncomment this if the webcam input is not the desired resolution
-        # image = cv2.resize(image, (monitorXPixels, monitorYPixels)) 
+
+        if frames == 0:
+            if cap.get(cv2.CAP_PROP_FRAME_WIDTH) == monitorXPixels and cap.get(cv2.CAP_PROP_FRAME_HEIGHT) == monitorYPixels:
+                resize = False
+            else:
+                resize = True
+
+        if resize:
+            image = cv2.resize(image, (monitorXPixels, monitorYPixels)) 
 
         # Finds the FPS
         cTime = time.time()
@@ -111,18 +121,28 @@ with mp_hands.Hands(
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style())
         
-        # Overlays every bubble image onto the screen
-        image = imageOverlay(bubbles, image)
-    
         for i in range(len(bubbles)):
-            if bubbles[i].y > monitorYPixels - bubbles[i].yPixels - 8:
-                max = 1
-            else:
-                max = 8
+            bubbles[i].index += 1
+            bubbles[i].x = bubbles[i].coordinates[bubbles[i].index][1]
+            if bubbles[i].y > monitorYPixels - bubbles[i].yPixels:
+                bubbles[i].changePath()
+                bubbles[i].isPopped = False
+
+        
+        
+        for i in range(len(bubbles)):
+            max = 8
+            if bubbles[i].y > monitorYPixels - bubbles[i].yPixels - max:
+                max = monitorYPixels - bubbles[i].yPixels - max
             bubbles[i].y += random.randint(1, max)
+            print(bubbles[0].y)
             if bubbles[i].y > monitorYPixels - bubbles[i].yPixels:
                 bubbles[i].y = 0
                 bubbles[i].isPopped = False
+
+        # Overlays every bubble image onto the screen
+        image = imageOverlay(bubbles, image)
+    
         
         
         cv2.imshow("MediaPipe Hands", image)
