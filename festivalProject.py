@@ -66,8 +66,18 @@ with mp_hands.Hands(
         if not success:
             print("Ignoring empty camera frame.")
             break
+        
+        if frames == 0:
+            if cap.get(cv2.CAP_PROP_FRAME_WIDTH) == monitorXPixels and cap.get(cv2.CAP_PROP_FRAME_HEIGHT) == monitorYPixels:
+                resize = False
+            else:
+                resize = True
+
+
+        if resize:
+            image = cv2.resize(image, (monitorXPixels, monitorYPixels)) 
+
         #! Uncomment this if the webcam input is not the desired resolution
-        # image = cv2.resize(image, (monitorXPixels, monitorYPixels)) 
 
         # Finds the FPS
         cTime = time.time()
