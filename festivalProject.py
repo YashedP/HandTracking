@@ -4,12 +4,21 @@
 # check bubble x and y less than 150 if they are, check if bubble is less than 100 distance from the center of each bubble and in the case it is, I make path for bubble to go left and bubble to go to right
 # take the first 5 frames and average for fps to get the length of the bezier curve indexes and how long I want the indexes to show up
 # randomize the size of the 2d array for the bezier curve to change the speed of the bubble itself, the index size for example for 20 fps - 100 index, randomize from 80 to 120, 30 fps - 150 index, randomize from 110 to 190
+# TODO: Animations
+# TODO: Fix the weird looking bubble
+# DONE: Randomize the time it takes for bubbles to go through the paths
+# TODO: Splicing the image
+# TODO: Collisions, check if bubbles overlap go over each other, check the direction, use the appropriate bezier to go left or right
+# TODO: Make a randomLeftBezier, randomRightBezier methods in the file
+# TODO: Add a GUI
 
 import cv2
 import mediapipe as mp
 import time
+import tkinter
 
 from bubble import Bubble
+import BezierCurves
 
 def imageOverlay(bubbles, image):
     for i in range(len(bubbles)):
@@ -20,9 +29,13 @@ def imageOverlay(bubbles, image):
             image[y_offset:y_offset+h, x_offset:x_offset+w] = cv2.addWeighted(image[y_offset:y_offset+h, x_offset:x_offset+w], 1.0, imageFront, .5, 0)
     return image
 
+
 # Change these to change the resolution of the window output
-monitorXPixels = 1280 # 1280, or 1980
-monitorYPixels = 720 # 720 or 1080
+monitorXPixels = 1980 # 1280, or 1980
+monitorYPixels = 1080 # 720 or 1080
+
+BezierCurves.monitorXPixels = monitorXPixels
+BezierCurves.monitorYPixels = monitorYPixels
 
 # Change the path to the image if need be
 imageFront = cv2.imread("Assets/bubble.png")
@@ -49,7 +62,6 @@ bubbles = [Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
            Bubble(imageFront.shape)]
-bubbles[0].setMonitorDimension(monitorXPixels, monitorYPixels)
 
 # Sets the pixels of the input picture
 cap = cv2.VideoCapture(0)
@@ -120,7 +132,7 @@ with mp_hands.Hands(
                 mp_drawing_styles.get_default_hand_connections_style())
         
         for i in range(len(bubbles)):
-            if bubbles[i].y == 620:
+            if bubbles[i].y == monitorYPixels - 100:
                 bubbles[i].resetPath()
                 bubbles[i].isPopped = False
             bubbles[i].index += 1

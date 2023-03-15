@@ -3,20 +3,23 @@ import bezier
 import random
 import matplotlib.pyplot as plt
 
-def generateRandomizeBezier():
-    lengthOfImage = 100
+monitorXPixels = 0
+monitorYPixels = 0 
+lengthOfImage = 100
 
-    randomizeDegree = 3
+def generateRandomBezier():
+    randomizeDegree = random.randint(2, 3)
+
+    starting_X_Value = random.randint(0, monitorXPixels - lengthOfImage)
+    end_X_Value = random.randint(0, monitorXPixels - lengthOfImage)
     starting_Y_Value = 0
-    end_Y_Value = 720 - lengthOfImage
+    end_Y_Value = monitorYPixels - lengthOfImage
 
-    starting_X_Value = random.randint(0, 1280 - lengthOfImage)
-    end_X_Value = random.randint(0, 1280 - lengthOfImage)
     nodesX = []
     nodesY = []
     for i in range(randomizeDegree - 1):
-        randomized_X_Coord = random.randint(0, 1280 - lengthOfImage)
-        randomized_Y_Coord = random.randint(0, 720 - lengthOfImage)
+        randomized_X_Coord = random.randint(0, monitorXPixels - lengthOfImage)
+        randomized_Y_Coord = random.randint(0, monitorYPixels - lengthOfImage)
         nodesX.append(randomized_X_Coord)
         nodesY.append(randomized_Y_Coord)
 
@@ -27,25 +30,33 @@ def generateRandomizeBezier():
 
     return generateBezier(nodes1, randomizeDegree)
 
+def generateRandomLeftBezier(x, y):
+    
+    pass
+
+def generateRandomRightBezier(x, y):
+    pass
+
 def generateBezier(nodes, degree):
     curve = bezier.Curve(nodes, degree)
 
     points = []
     # xList = []
     # yList = []
-    for i in range(0, 1005, 5):
-        i = i/1000
+    randomizeIncrement = random.randint(20, 50)
+    for i in range(0, 10000, randomizeIncrement):
+        i = i/10000
 
-        points.append(curve.evaluate(i * 1.0))
-        # xList.append(curve.evaluate(i * 1.0)[0])
-        # yList.append(curve.evaluate(i * 1.0)[1])
+        points.append(curve.evaluate(float(i)))
+        # xList.append(curve.evaluate(float(i))[0])
+        # yList.append(curve.evaluate(float(i))[1])
+    
+    points.append(curve.evaluate(1.0))
 
     return points
-    # plotBezier(xList, yList, points)
+    # plotBezier(xList, yList)
 
 def plotBezier(xList, yList, points):
-    # for i in range(len(points)):
-    #     print(f"({int(points[i][0])}, {int(points[i][1])})")
     plt.plot(xList, yList)
     plt.ylabel('some numbers')
     plt.axis([0, 1280, 0, 620])

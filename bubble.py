@@ -1,15 +1,14 @@
 import math
+import random
 import BezierCurves
 
 class Bubble:
     # static variables
-    monitorXPixels = 0
-    monitorYPixels = 0
     bubblesPopped = 0
     
-    def __init__(self, imageShape, isPopped=False, distanceFromFinger=100, index=0):
-        self.coordinates = BezierCurves.generateRandomizeBezier()
-        self.index = index
+    def __init__(self, imageShape, isPopped=False, distanceFromFinger=100):
+        self.coordinates = BezierCurves.generateRandomBezier()
+        self.index = random.randint(0, len(self.coordinates) - 1)
         self.x = int(self.coordinates[self.index][0])
         self.y = int(self.coordinates[self.index][1])
         self.xPixels = imageShape[1]
@@ -25,10 +24,6 @@ class Bubble:
         if self.distanceFromFinger <= self.distanceThreshold:
             Bubble.bubblesPopped += 1
             self.isPopped = True
-
-    def setMonitorDimension(self, monitorXPixels, monitorYPixels):
-        Bubble.monitorXPixels = monitorXPixels
-        Bubble.monitorYPixels = monitorYPixels
     
     # Prerequisite, the distance of the 2 bubbles must be less than 100 (2 bubble radiuses)
     def changeDirection(self, otherBubble):
@@ -38,7 +33,7 @@ class Bubble:
             return "right"
         
     def resetPath(self):
-        self.coordinates = BezierCurves.generateRandomizeBezier()
+        self.coordinates = BezierCurves.generateRandomBezier()
         self.index = 0
         self.x = int(self.coordinates[self.index][0])
         self.y = int(self.coordinates[self.index][1])
