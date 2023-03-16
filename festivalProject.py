@@ -1,13 +1,9 @@
 # animations
-#! Meaning, I must splice up the images by 100 pictures, ranging from the rows being shown and disappearing
 # Have a frame bigger than what we show to encapture the hands in case we wanted to pop the bubble but it was off screen so it wouldn't be able to find the bubble if half of our hand was off screen
 # check bubble x and y less than 150 if they are, check if bubble is less than 100 distance from the center of each bubble and in the case it is, I make path for bubble to go left and bubble to go to right
 # take the first 5 frames and average for fps to get the length of the bezier curve indexes and how long I want the indexes to show up
-# randomize the size of the 2d array for the bezier curve to change the speed of the bubble itself, the index size for example for 20 fps - 100 index, randomize from 80 to 120, 30 fps - 150 index, randomize from 110 to 190
 # TODO: Animations
 # TODO: Fix the weird looking bubble
-# DONE: Randomize the time it takes for bubbles to go through the paths
-# TODO: Splicing the image
 # TODO: Collisions, check if bubbles overlap go over each other, check the direction, use the appropriate bezier to go left or right
 # TODO: Make a randomLeftBezier, randomRightBezier methods in the file
 # TODO: Add a GUI
@@ -25,14 +21,33 @@ def imageOverlay(bubbles, image):
         if not bubbles[i].isPopped:
             x_offset = bubbles[i].x
             y_offset = bubbles[i].y
+
             h, w = imageFront.shape[:2]
-            image[y_offset:y_offset+h, x_offset:x_offset+w] = cv2.addWeighted(image[y_offset:y_offset+h, x_offset:x_offset+w], 1.0, imageFront, .5, 0)
+            
+            if y_offset < 0:
+                maxLength = (100 + y_offset)
+
+                imgFront = cv2.resize(imageFront[h - maxLength:, :], (w, maxLength))
+                y_offset = max(0, y_offset - maxLength)
+
+                y1, y2 = y_offset, y_offset + maxLength
+                x1, x2 = x_offset, x_offset + w
+                image[y1:y2, x1:x2] = cv2.addWeighted(image[y1:y2, x1:x2], 1.0,imgFront, .5, 0)
+            
+            elif y_offset < monitorYPixels - 100 + 1:
+                image[y_offset:y_offset+h, x_offset:x_offset+w] = cv2.addWeighted(image[y_offset:y_offset+h, x_offset:x_offset+w], 1.0, imageFront, .5, 0)
+                
+            elif y_offset < monitorYPixels:
+                maxLength = monitorYPixels-y_offset
+                imgFront = cv2.resize(imageFront[0:maxLength, :], (w, maxLength))
+            
+                image[y_offset:y_offset+maxLength, x_offset:x_offset+w] = cv2.addWeighted(image[y_offset:y_offset+maxLength, x_offset:x_offset+w], 1.0,imgFront, .5, 0)
     return image
 
 
 # Change these to change the resolution of the window output
-monitorXPixels = 1980 # 1280, or 1980
-monitorYPixels = 1080 # 720 or 1080
+monitorXPixels = 1280 # 1280, or 1980
+monitorYPixels = 720 # 720 or 1080
 
 BezierCurves.monitorXPixels = monitorXPixels
 BezierCurves.monitorYPixels = monitorYPixels
@@ -51,8 +66,13 @@ pTime = 0
 cTime = 0
 frames = 0
 
-# bubbles = [Bubble(imageFront.shape)]
 bubbles = [Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
+           Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
            Bubble(imageFront.shape),   \
@@ -117,9 +137,13 @@ with mp_hands.Hands(
         except TypeError:
             pass
         
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
         # If pressed the enter key, then the hand drawings show up
         if cv2.waitKey(1) & 0xFF == 13:
             showResults = not showResults
+        
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Draws the hand drawings on on the hand if enter key is pressed
         if results.multi_hand_landmarks and showResults:
@@ -132,7 +156,7 @@ with mp_hands.Hands(
                 mp_drawing_styles.get_default_hand_connections_style())
         
         for i in range(len(bubbles)):
-            if bubbles[i].y == monitorYPixels - 100:
+            if bubbles[i].y == monitorYPixels:
                 bubbles[i].resetPath()
                 bubbles[i].isPopped = False
             bubbles[i].index += 1

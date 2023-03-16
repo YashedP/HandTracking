@@ -12,14 +12,14 @@ def generateRandomBezier():
 
     starting_X_Value = random.randint(0, monitorXPixels - lengthOfImage)
     end_X_Value = random.randint(0, monitorXPixels - lengthOfImage)
-    starting_Y_Value = 0
-    end_Y_Value = monitorYPixels - lengthOfImage
+    starting_Y_Value = -99
+    end_Y_Value = monitorYPixels
 
     nodesX = []
     nodesY = []
     for i in range(randomizeDegree - 1):
         randomized_X_Coord = random.randint(0, monitorXPixels - lengthOfImage)
-        randomized_Y_Coord = random.randint(0, monitorYPixels - lengthOfImage)
+        randomized_Y_Coord = random.randint(0, monitorYPixels)
         nodesX.append(randomized_X_Coord)
         nodesY.append(randomized_Y_Coord)
 
@@ -31,7 +31,6 @@ def generateRandomBezier():
     return generateBezier(nodes1, randomizeDegree)
 
 def generateRandomLeftBezier(x, y):
-    
     pass
 
 def generateRandomRightBezier(x, y):

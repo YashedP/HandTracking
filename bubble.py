@@ -8,7 +8,11 @@ class Bubble:
     
     def __init__(self, imageShape, isPopped=False, distanceFromFinger=100):
         self.coordinates = BezierCurves.generateRandomBezier()
-        self.index = random.randint(0, len(self.coordinates) - 1)
+        while True:
+            self.index = random.randint(0, len(self.coordinates) - 1)
+
+            if int(self.coordinates[self.index][1]) > 0:
+                break
         self.x = int(self.coordinates[self.index][0])
         self.y = int(self.coordinates[self.index][1])
         self.xPixels = imageShape[1]
