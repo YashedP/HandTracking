@@ -3,7 +3,6 @@
 # check bubble x and y less than 150 if they are, check if bubble is less than 100 distance from the center of each bubble and in the case it is, I make path for bubble to go left and bubble to go to right
 # take the first 5 frames and average for fps to get the length of the bezier curve indexes and how long I want the indexes to show up
 # TODO: Animations
-# TODO: Fix the weird looking bubble
 # TODO: Collisions, check if bubbles overlap go over each other, check the direction, use the appropriate bezier to go left or right
 # TODO: Make a randomLeftBezier, randomRightBezier methods in the file
 # TODO: Add a GUI
@@ -30,30 +29,72 @@ def imageOverlay(bubbles, image):
                 imgFront = cv2.resize(imageFront[h - maxLength:, :], (w, maxLength))
                 y_offset = max(0, y_offset - maxLength)
 
+                # Image ranges
                 y1, y2 = y_offset, y_offset + maxLength
                 x1, x2 = x_offset, x_offset + w
-                image[y1:y2, x1:x2] = cv2.addWeighted(image[y1:y2, x1:x2], 1.0,imgFront, .5, 0)
-            
+
+                # Overlay ranges
+                y1o, y2o = 0, imgFront.shape[0]
+                x1o, x2o = 0, imgFront.shape[1]
+
+                channels = image.shape[2]
+
+                alpha = imgFront[y1o:y2o,x1o:x2o,-1] / 255.0
+                alpha_inv = 1.0 - alpha
+
+                for c in range(channels):
+                    image[y1:y2,x1:x2,c] = (alpha * imgFront[y1o:y2o,x1o:x2o,c] + alpha_inv *image[y1:y2,x1:x2,c])
             elif y_offset < monitorYPixels - 100 + 1:
-                image[y_offset:y_offset+h, x_offset:x_offset+w] = cv2.addWeighted(image[y_offset:y_offset+h, x_offset:x_offset+w], 1.0, imageFront, .5, 0)
+                x = bubbles[i].x
+                y = bubbles[i].y
+
+                # Image ranges
+                y1, y2 = max(0, y), min(image.shape[0], y + imageFront.shape[0])
+                x1, x2 = max(0, x), min(image.shape[1], x + imageFront.shape[1])
+
+                # Overlay ranges
+                y1o, y2o = max(0, -y), min(imageFront.shape[0], image.shape[0] - y)
+                x1o, x2o = max(0, -x), min(imageFront.shape[1], image.shape[1] - x)
+
+                channels = image.shape[2]
+
+                alpha = imageFront[y1o:y2o,x1o:x2o,-1] / 255.0
+                alpha_inv = 1.0 - alpha
+
+                for c in range(channels):
+                    image[y1:y2,x1:x2,c] = (alpha * imageFront[y1o:y2o,x1o:x2o,c] + alpha_inv *image[y1:y2,x1:x2,c])
                 
             elif y_offset < monitorYPixels:
                 maxLength = monitorYPixels-y_offset
                 imgFront = cv2.resize(imageFront[0:maxLength, :], (w, maxLength))
-            
-                image[y_offset:y_offset+maxLength, x_offset:x_offset+w] = cv2.addWeighted(image[y_offset:y_offset+maxLength, x_offset:x_offset+w], 1.0,imgFront, .5, 0)
+
+                # Image ranges
+                y1, y2 = max(0, y_offset), min(image.shape[0], y_offset + imageFront.shape[0])
+                x1, x2 = max(0, x_offset), min(image.shape[1], x_offset + imageFront.shape[1])
+
+                # Overlay ranges
+                y1o, y2o = max(0, -y_offset), min(imgFront.shape[0], image.shape[0] - y_offset)
+                x1o, x2o = max(0, -x_offset), min(imgFront.shape[1], image.shape[1] - x_offset)
+
+                channels = image.shape[2]
+
+                alpha = imgFront[y1o:y2o,x1o:x2o,-1] / 255.0
+                alpha_inv = 1.0 - alpha
+
+                for c in range(channels):
+                    image[y1:y2,x1:x2,c] = (alpha * imgFront[y1o:y2o,x1o:x2o,c] + alpha_inv *image[y1:y2,x1:x2,c])
     return image
 
 
 # Change these to change the resolution of the window output
-monitorXPixels = 1280 # 1280, or 1980
-monitorYPixels = 720 # 720 or 1080
+monitorXPixels = 1980 # 1280, or 1980
+monitorYPixels = 1080 # 720 or 1080
 
 BezierCurves.monitorXPixels = monitorXPixels
 BezierCurves.monitorYPixels = monitorYPixels
 
 # Change the path to the image if need be
-imageFront = cv2.imread("Assets/bubble.png")
+imageFront = cv2.imread("Assets/bubble.png", cv2.IMREAD_UNCHANGED)
 imageFront = cv2.resize(imageFront, (100, 100))
 
 # ------------------------------------------------
@@ -124,19 +165,19 @@ with mp_hands.Hands(
             results = hands.process(image)
         
         # Gets the index finger coordinate
-        try:
-            index_finger_tip = results.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+                x_coord_of_index_finger_tip = (index_finger_tip.x * monitorXPixels)
+                y_coord_of_index_finger_tip = (index_finger_tip.y * monitorYPixels)
+                
+                for i in range(len(bubbles)):
+                    bubbles[i].calculateDistance(x_coord_of_index_finger_tip, y_coord_of_index_finger_tip)
+                    if not bubbles[i].isPopped:
+                        bubbles[i].popBubble()
 
-            x_coord_of_index_finger_tip = (index_finger_tip.x * monitorXPixels)
-            y_coord_of_index_finger_tip = (index_finger_tip.y * monitorYPixels)
 
-            for i in range(len(bubbles)):
-                bubbles[i].calculateDistance(x_coord_of_index_finger_tip, y_coord_of_index_finger_tip)
-                if not bubbles[i].isPopped:
-                    bubbles[i].popBubble()
-        except TypeError:
-            pass
-        
+
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # If pressed the enter key, then the hand drawings show up
