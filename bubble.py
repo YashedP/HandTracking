@@ -5,6 +5,7 @@ import BezierCurves
 class Bubble:
     # static variables
     bubblesPopped = 0
+    bubblePopImages = 0
     
     def __init__(self, imageShape, isPopped=False, distanceFromFinger=100):
         self.coordinates = BezierCurves.generateRandomBezier()
@@ -20,6 +21,8 @@ class Bubble:
         self.isPopped = isPopped
         self.distanceFromFinger = distanceFromFinger
         self.distanceThreshold = self.xPixels / 2
+        self.bubblePopImagesIndex = 0
+        self.poppingAnimation = False
 
     def calculateDistance(self, xCoordinateOfFinger, yCoordinateOfFinger):
         self.distanceFromFinger = math.sqrt(pow((self.x + self.xPixels / 2) - xCoordinateOfFinger, 2) + pow((self.y + self.yPixels / 2) - yCoordinateOfFinger, 2))
@@ -27,6 +30,7 @@ class Bubble:
     def popBubble(self):
         if self.distanceFromFinger <= self.distanceThreshold:
             Bubble.bubblesPopped += 1
+            self.poppingAnimation = True
             self.isPopped = True
     
     # Prerequisite, the distance of the 2 bubbles must be less than 100 (2 bubble radiuses)
@@ -39,5 +43,7 @@ class Bubble:
     def resetPath(self):
         self.coordinates = BezierCurves.generateRandomBezier()
         self.index = 0
+        self.bubblePopImagesIndex = 0
+        self.poppingAnimation = False
         self.x = int(self.coordinates[self.index][0])
         self.y = int(self.coordinates[self.index][1])

@@ -17,16 +17,22 @@ import BezierCurves
 
 def imageOverlay(bubbles, image):
     for i in range(len(bubbles)):
-        if not bubbles[i].isPopped:
+        if not bubbles[i].isPopped or (bubbles[i].poppingAnimation and bubbles[i].bubblePopImagesIndex < len(bubblePopImages)):
             x_offset = bubbles[i].x
             y_offset = bubbles[i].y
 
-            h, w = imageFront.shape[:2]
+            if bubbles[i].poppingAnimation:
+                imgFront = bubblePopImages[bubbles[i].bubblePopImagesIndex]
+                bubbles[i].bubblePopImagesIndex += 1
+            else:
+                imgFront = imageFront
+
+            h, w = imgFront.shape[:2]
             
             if y_offset < 0:
                 maxLength = (100 + y_offset)
 
-                imgFront = cv2.resize(imageFront[h - maxLength:, :], (w, maxLength))
+                imgFront = cv2.resize(imgFront[h - maxLength:, :], (w, maxLength))
                 y_offset = max(0, y_offset - maxLength)
 
                 # Image ranges
@@ -49,28 +55,28 @@ def imageOverlay(bubbles, image):
                 y = bubbles[i].y
 
                 # Image ranges
-                y1, y2 = max(0, y), min(image.shape[0], y + imageFront.shape[0])
-                x1, x2 = max(0, x), min(image.shape[1], x + imageFront.shape[1])
+                y1, y2 = max(0, y), min(image.shape[0], y + imgFront.shape[0])
+                x1, x2 = max(0, x), min(image.shape[1], x + imgFront.shape[1])
 
                 # Overlay ranges
-                y1o, y2o = max(0, -y), min(imageFront.shape[0], image.shape[0] - y)
-                x1o, x2o = max(0, -x), min(imageFront.shape[1], image.shape[1] - x)
+                y1o, y2o = max(0, -y), min(imgFront.shape[0], image.shape[0] - y)
+                x1o, x2o = max(0, -x), min(imgFront.shape[1], image.shape[1] - x)
 
                 channels = image.shape[2]
 
-                alpha = imageFront[y1o:y2o,x1o:x2o,-1] / 255.0
+                alpha = imgFront[y1o:y2o,x1o:x2o,-1] / 255.0
                 alpha_inv = 1.0 - alpha
 
                 for c in range(channels):
-                    image[y1:y2,x1:x2,c] = (alpha * imageFront[y1o:y2o,x1o:x2o,c] + alpha_inv *image[y1:y2,x1:x2,c])
+                    image[y1:y2,x1:x2,c] = (alpha * imgFront[y1o:y2o,x1o:x2o,c] + alpha_inv *image[y1:y2,x1:x2,c])
                 
             elif y_offset < monitorYPixels:
                 maxLength = monitorYPixels-y_offset
-                imgFront = cv2.resize(imageFront[0:maxLength, :], (w, maxLength))
+                imgFront = cv2.resize(imgFront[0:maxLength, :], (w, maxLength))
 
                 # Image ranges
-                y1, y2 = max(0, y_offset), min(image.shape[0], y_offset + imageFront.shape[0])
-                x1, x2 = max(0, x_offset), min(image.shape[1], x_offset + imageFront.shape[1])
+                y1, y2 = max(0, y_offset), min(image.shape[0], y_offset + imgFront.shape[0])
+                x1, x2 = max(0, x_offset), min(image.shape[1], x_offset + imgFront.shape[1])
 
                 # Overlay ranges
                 y1o, y2o = max(0, -y_offset), min(imgFront.shape[0], image.shape[0] - y_offset)
@@ -87,16 +93,26 @@ def imageOverlay(bubbles, image):
 
 
 # Change these to change the resolution of the window output
-monitorXPixels = 1980 # 1280, or 1980
-monitorYPixels = 1080 # 720 or 1080
+monitorXPixels = 1280 # 1280, or 1980
+monitorYPixels = 720 # 720 or 1080
 
 BezierCurves.monitorXPixels = monitorXPixels
 BezierCurves.monitorYPixels = monitorYPixels
 
-# Change the path to the image if need be
-imageFront = cv2.imread("Assets/bubble.png", cv2.IMREAD_UNCHANGED)
-imageFront = cv2.resize(imageFront, (100, 100))
+bubblePopImages = []
 
+index = 0
+while True:
+    try:
+        bubblePopImages.append(cv2.resize(cv2.imread(f"Assets/bubblePop/{index}.png", cv2.IMREAD_UNCHANGED), (100, 100)))
+        index += 1
+    except:
+        break
+
+Bubble.bubblePopImages = len(bubblePopImages)
+
+# Change the path to the image if need be
+imageFront = cv2.resize(cv2.imread("Assets/bubble.png", cv2.IMREAD_UNCHANGED), (100, 100))
 # ------------------------------------------------
 
 mp_hands = mp.solutions.hands
@@ -203,10 +219,10 @@ with mp_hands.Hands(
             bubbles[i].index += 1
             bubbles[i].x = int(bubbles[i].coordinates[bubbles[i].index][0])
             bubbles[i].y = int(bubbles[i].coordinates[bubbles[i].index][1])
-
+            
         # Overlays every bubble image onto the screen
         image = imageOverlay(bubbles, image)
-    
+
         
         
         cv2.imshow("Bubbles", image)

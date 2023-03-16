@@ -55,7 +55,7 @@ def generateBezier(nodes, degree):
     return points
     # plotBezier(xList, yList)
 
-def plotBezier(xList, yList, points):
+def plotBezier(xList, yList):
     plt.plot(xList, yList)
     plt.ylabel('some numbers')
     plt.axis([0, 1280, 0, 620])
