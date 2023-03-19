@@ -176,9 +176,13 @@ with mp_hands.Hands(
         bubblesPopped = bubbles[0].bubblesPopped
         cv2.putText(image, str(int(bubblesPopped)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
         
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
         # Every 3 frames, find hands on image
         if frames % 3 == 0:
             results = hands.process(image)
+        
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         
         # Gets the index finger coordinate
         if results.multi_hand_landmarks:
@@ -193,15 +197,10 @@ with mp_hands.Hands(
                         bubbles[i].popBubble()
 
 
-
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
         # If pressed the enter key, then the hand drawings show up
         if cv2.waitKey(1) & 0xFF == 13:
             showResults = not showResults
         
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
         # Draws the hand drawings on on the hand if enter key is pressed
         if results.multi_hand_landmarks and showResults:
             for hand_landmarks in results.multi_hand_landmarks:
